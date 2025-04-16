@@ -9,30 +9,34 @@ namespace DEPI_V2.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProductId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Product name is required")]
         [MaxLength(255)]
-        public string Nome { get; set; } = null!;
+        public required string Name { get; set; }
 
         [Column(TypeName = "TEXT")]
         public string? Description { get; set; }
 
-       
-
         [ForeignKey("Category")]
         public int? CategoryId { get; set; }
 
-        [MaxLength(255)] // Assuming a reasonable max length for Brand
+        [MaxLength(255)]
         public string? Brand { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Price is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        [MaxLength(255)] // Assuming a reasonable max length for ImageUrl
+        [MaxLength(255)]
         public string? ImageUrl { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Stock quantity is required")]
+        [Range(0, int.MaxValue, ErrorMessage = "Stock quantity cannot be negative")]
         public int StockQuantity { get; set; }
 
-        public virtual Category? Category { get; set; } // Navigation property
+        // Navigation properties
+        public virtual Category? Category { get; set; }
+        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
     }
 }

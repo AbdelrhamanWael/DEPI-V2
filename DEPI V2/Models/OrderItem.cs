@@ -9,23 +9,25 @@ namespace DEPI_V2.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int OrderItemId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Order is required")]
         [ForeignKey("Order")]
-        public int OrderId { get; set; }
+        public required int OrderId { get; set; }
 
-        [Required]
-        [ForeignKey("Product")] // Assuming you have a Product class
-        public int ProductId { get; set; }
+        [Required(ErrorMessage = "Product is required")]
+        [ForeignKey("Product")]
+        public required int ProductId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Quantity is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
         public int Quantity { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Unit price is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "Unit price must be greater than 0")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; }
 
-        [Required] // Added Required, since the database schema says  Not Null
-        public virtual Order Order { get; set; }
-        public virtual Product Product { get; set; } //  navigation property
-
+        // Navigation properties
+        public virtual Order? Order { get; set; }
+        public virtual Product? Product { get; set; }
     }
 }

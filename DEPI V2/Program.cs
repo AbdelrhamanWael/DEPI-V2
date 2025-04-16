@@ -14,7 +14,8 @@ builder.Services.AddIdentityCore<User>();
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-// Add Identity
+
+// Add Identity with roles
 builder.Services.AddIdentity<User, IdentityRole>(Options =>
 {
     Options.SignIn.RequireConfirmedAccount = false;
@@ -25,15 +26,10 @@ builder.Services.AddIdentity<User, IdentityRole>(Options =>
     Options.Password.RequiredLength = 8;
     Options.Password.RequireUppercase = false;
     Options.Password.RequireLowercase = false;
-    Options.User.RequireUniqueEmail = true;
 })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
-
-
-
-
-
 
 var app = builder.Build();
 
@@ -58,6 +54,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();

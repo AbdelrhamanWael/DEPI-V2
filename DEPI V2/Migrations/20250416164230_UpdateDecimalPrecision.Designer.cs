@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DEPI_V2.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250412202118_ourdb")]
-    partial class ourdb
+    [Migration("20250416164230_UpdateDecimalPrecision")]
+    partial class UpdateDecimalPrecision
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -142,7 +142,7 @@ namespace DEPI_V2.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -199,17 +199,14 @@ namespace DEPI_V2.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("ShoppingCartsCartId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CartItemId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("CartId");
 
-                    b.HasIndex("ShoppingCartsCartId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ShoppingCartItems");
                 });
@@ -223,7 +220,6 @@ namespace DEPI_V2.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -242,6 +238,9 @@ namespace DEPI_V2.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -266,7 +265,6 @@ namespace DEPI_V2.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -441,7 +439,7 @@ namespace DEPI_V2.Migrations
             modelBuilder.Entity("DEPI_V2.Models.Order", b =>
                 {
                     b.HasOne("DEPI_V2.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -458,7 +456,7 @@ namespace DEPI_V2.Migrations
                         .IsRequired();
 
                     b.HasOne("DEPI_V2.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -480,7 +478,7 @@ namespace DEPI_V2.Migrations
             modelBuilder.Entity("DEPI_V2.Models.ShoppingCart", b =>
                 {
                     b.HasOne("DEPI_V2.Models.User", "User")
-                        .WithMany()
+                        .WithMany("ShoppingCarts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -490,21 +488,21 @@ namespace DEPI_V2.Migrations
 
             modelBuilder.Entity("DEPI_V2.Models.ShoppingCartItem", b =>
                 {
-                    b.HasOne("DEPI_V2.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
+                    b.HasOne("DEPI_V2.Models.ShoppingCart", "ShoppingCart")
+                        .WithMany("ShoppingCartItems")
+                        .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DEPI_V2.Models.ShoppingCart", "ShoppingCarts")
-                        .WithMany()
-                        .HasForeignKey("ShoppingCartsCartId")
+                    b.HasOne("DEPI_V2.Models.Product", "Product")
+                        .WithMany("ShoppingCartItems")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
 
-                    b.Navigation("ShoppingCarts");
+                    b.Navigation("ShoppingCart");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -566,6 +564,25 @@ namespace DEPI_V2.Migrations
             modelBuilder.Entity("DEPI_V2.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("DEPI_V2.Models.Product", b =>
+                {
+                    b.Navigation("OrderItems");
+
+                    b.Navigation("ShoppingCartItems");
+                });
+
+            modelBuilder.Entity("DEPI_V2.Models.ShoppingCart", b =>
+                {
+                    b.Navigation("ShoppingCartItems");
+                });
+
+            modelBuilder.Entity("DEPI_V2.Models.User", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("ShoppingCarts");
                 });
 #pragma warning restore 612, 618
         }

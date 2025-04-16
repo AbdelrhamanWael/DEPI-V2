@@ -9,34 +9,36 @@ namespace DEPI_V2.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int OrderId { get; set; }
 
-        [Required]
-        [ForeignKey("User")] 
-        public string UserId { get; set; }
+        [Required(ErrorMessage = "User is required")]
+        [ForeignKey("User")]
+        public required string UserId { get; set; }
 
-        public DateTime? OrderDate { get; set; } 
+        public DateTime? OrderDate { get; set; }
 
-        [MaxLength(255)] 
+        [MaxLength(255)]
         public string? OrderStatus { get; set; }
 
-        [Required]  
+        [Required(ErrorMessage = "Shipping address is required")]
         [Column(TypeName = "TEXT")]
-        public string ShippingAddress { get; set; } = null!;
+        public required string ShippingAddress { get; set; }
 
-        [Required] 
+        [Required(ErrorMessage = "Billing address is required")]
         [Column(TypeName = "TEXT")]
-        public string BillingAddress { get; set; } = null!;
+        public required string BillingAddress { get; set; }
 
-        [Required] 
+        [Required(ErrorMessage = "Total amount is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "Total amount must be greater than 0")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
 
-        [MaxLength(255)] 
+        [MaxLength(255)]
         public string? PaymentMethod { get; set; }
 
-        [MaxLength(255)] 
+        [MaxLength(255)]
         public string? TransactionId { get; set; }
 
+        // Navigation properties
+        public virtual User? User { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        public virtual User User { get; set; } 
-
     }
 }

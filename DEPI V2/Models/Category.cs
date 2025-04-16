@@ -9,14 +9,14 @@ namespace DEPI_V2.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CategoryId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Category name is required")]
         [MaxLength(255)]
-        public string Name { get; set; } = null!;
+        public required string Name { get; set; }
 
         [Column(TypeName = "TEXT")]
         public string? Description { get; set; }
 
+        // Navigation properties
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
-
     }
 }

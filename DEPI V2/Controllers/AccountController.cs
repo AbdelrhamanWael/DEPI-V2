@@ -10,11 +10,13 @@ namespace DEPI_V2.Controllers
     {
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
 
-        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager)
+        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
+            this.roleManager = roleManager;
         }
 
         public IActionResult Login()
@@ -27,6 +29,20 @@ namespace DEPI_V2.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Hardcoded admin check
+                if (model.Email == "admin@depi.com" && model.Password == "Admin@123")
+                {
+                    await signInManager.SignInAsync(new User 
+                    { 
+                        UserName = model.Email,
+                        Email = model.Email,
+                        FirstName = "Admin",
+                        LastName = "User",
+                        IsAdmin = true 
+                    }, isPersistent: model.RememberMe);
+                    return RedirectToAction("Index", "Dashboard");
+                }
+
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
@@ -53,25 +69,28 @@ namespace DEPI_V2.Controllers
             {
                 User user = new User
                 {
-                    FirstName = model.Name,
-                    LastName = model.Name,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
                     Email = model.Email,
-                    UserName = model.Email
+                    UserName = model.Email,
+                    PhoneNumber = model.PhoneNumber,
+                    Address = model.Address,
+                    RegistrationDate = DateTime.UtcNow
                 };
+
                 var result = await userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Login", "Account");
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
                 }
-                else
+
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
-                    return View(model);
+                    ModelState.AddModelError("", error.Description);
                 }
             }
+
             return View(model);
         }
 
@@ -105,7 +124,11 @@ namespace DEPI_V2.Controllers
             {
                 return RedirectToAction("VerifyEmail", "Account");
             }
-            return View(new ChangePasswordViewModel { Email = username });
+            return View(new ChangePasswordViewModel { 
+                Email = username,
+                NewPassword = "",
+                ConfirmNewPassword = ""
+            });
         }
 
         [HttpPost]
@@ -159,7 +182,76 @@ namespace DEPI_V2.Controllers
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-    }
 
+        public async Task<IActionResult> CreateAdmin()
+        {
+            try
+            {
+                // Check if admin already exists
+                var existingAdmin = await userManager.GetUsersInRoleAsync("Admin");
+                if (existingAdmin.Any())
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                // Create Admin role if it doesn't exist
+                if (!await roleManager.RoleExistsAsync("Admin"))
+                {
+                    var roleResult = await roleManager.CreateAsync(new IdentityRole("Admin"));
+                    if (!roleResult.Succeeded)
+                    {
+                        throw new Exception("Failed to create Admin role");
+                    }
+                }
+
+                // Check if admin user exists by email
+                var existingUser = await userManager.FindByEmailAsync("admin@depi.com");
+                if (existingUser != null)
+                {
+                    // If user exists but not in admin role, add to role
+                    if (!await userManager.IsInRoleAsync(existingUser, "Admin"))
+                    {
+                        await userManager.AddToRoleAsync(existingUser, "Admin");
+                    }
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var adminUser = new User
+                {
+                    UserName = "admin@depi.com",
+                    Email = "admin@depi.com",
+                    FirstName = "Admin",
+                    LastName = "User",
+                    IsAdmin = true,
+                    EmailConfirmed = true,
+                    RegistrationDate = DateTime.UtcNow
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin@123");
+                
+                if (result.Succeeded)
+                {
+                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
+                    if (!roleResult.Succeeded)
+                    {
+                        throw new Exception("Failed to add user to Admin role");
+                    }
+                    return RedirectToAction("Login", "Account");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+
+                throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error creating admin: {ex.Message}");
+                return View("Login");
+            }
+        }
+    }
 }
 

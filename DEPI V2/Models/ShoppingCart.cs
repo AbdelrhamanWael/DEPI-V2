@@ -9,12 +9,14 @@ namespace DEPI_V2.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CartId { get; set; }
 
-        [Required]
-        [ForeignKey("User")] 
-        public string UserId { get; set; }
+        [Required(ErrorMessage = "User is required")]
+        [ForeignKey("User")]
+        public required string UserId { get; set; }
 
-        public DateTime? DateCreated { get; set; } 
+        public DateTime? DateCreated { get; set; }
 
-        public virtual User User { get; set; }
+        // Navigation properties
+        public virtual User? User { get; set; }
+        public virtual ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
     }
 }

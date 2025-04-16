@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DEPI_V2</RootNamespace>
+    <BaseOutputPath>E:\MY PROJECT\C#\DEPI V2\DEPI V2\bin\Debug</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,6 +11,7 @@ namespace DEPI_V2.Data
         public AppDbContext(DbContextOptions options) : base(options)
         {
 
+
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
@@ -19,6 +20,7 @@ namespace DEPI_V2.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
+
 
 
 
